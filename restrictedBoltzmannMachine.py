@@ -11,7 +11,6 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 theanoFloat  = theano.config.floatX
 
-
 class RBMMiniBatchTrainer(object):
 
   def __init__(self, input, theanoGenerator, initialWeights, initialBiases,
@@ -127,15 +126,15 @@ class ReconstructerBatch(object):
     # This does not sample the visible layers, but samples
     # The hidden layers up to the last one, like Hinton suggests
     def OneCDStep(visibleSample):#keep the label fixed
-      if(self.fixedLabel):
-        label = visibleSample[:,625:]
+
+      label = visibleSample[:,625:]
 
       linearSum = T.dot(visibleSample, self.weightsForHidden) + hiddenBias
       hidden = hiddenActivationFunction.nonDeterminstic(linearSum)
       linearSum = T.dot(hidden, self.weightsForVisible) + visibleBias
       visibleRec = visibleActivationFunction.deterministic(linearSum)
-      if(self.fixedLabel):
-        visibleRec = T.set_subtensor(visibleRec[:,625:], label)
+      
+      visibleRec = T.set_subtensor(visibleRec[:,625:], label)
       return visibleRec
 
     visibleSeq, updates = theano.scan(OneCDStep,
@@ -539,7 +538,9 @@ class RBM(object):
     # so send the data in via mini bathes for reconstruction as well
 
   def reconstruct(self, dataInstances, cdSteps=1):
+    print "enters  reconstruct ", cdSteps
     dataInstacesConverted = theano.shared(np.asarray(dataInstances, dtype=theanoFloat))
+    print self.reconstructer.fixedLabel
 
     #print "reconstruct1",dataInstances.shape
     reconstructFunction = theano.function(

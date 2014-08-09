@@ -1,7 +1,7 @@
 import os.path
-from PIL import Image 
 import numpy as np
 import cv2
+import random,copy
 
 imageSize = 25
 #emotionArray = ["anger","contempt","disgust","fear","happy","sadness","surprise"]
@@ -26,12 +26,38 @@ def parseImage(path):
 			(a,b,c,d) = pixels[i,j]
 			array.append((a+b+c)/3)    
 	return array'''
-
+# reads the data for a single emotion
 def readEmotion(emo):
 	out = []
 	for fil in os.listdir("kanade/"+emo):
 		out.append(parseImage("kanade/"+emo+"/"+fil))
 	return np.array(out)
+
+def readAllEmotions():
+	data = {"fear": [], "happy": [], "anger": [], "contempt": [], "disgust": [], "sadness": [], "surprise": []}
+  	emotions = ["fear", "happy", "anger", "contempt", "disgust", "sadness", "surprise"]
+	for emote in emotions:
+		path = "kanade/" + emote + "/"
+		for pic in os.listdir(path):
+			if(emote == "anger"):
+				data["anger"].append(parseImage(path+pic))
+			elif(emote == "fear"):
+				data["fear"].append(parseImage(path+pic))
+			elif(emote == "happy"):
+				data["happy"].append(parseImage(path+pic))
+			elif(emote == "disgust"):
+				data["disgust"].append(parseImage(path+pic))
+			elif(emote == "sadness"):
+				data["sadness"].append(parseImage(path+pic))
+			elif(emote == "surprise"):
+				data["surprise"].append(parseImage(path+pic))
+			elif(emote == "contempt"):
+				data["contempt"].append(parseImage(path+pic))
+	#print "DATA",np.array(data["anger"][0])
+
+	return data
+
+# reads the data for the given associations
 def readWithAsoc(asociations):
 	foldersize = []
 	anger = []
@@ -49,13 +75,11 @@ def readWithAsoc(asociations):
 			elif(emote == "fear"):
 				fear.append(parseImage(path+pic))
 			elif(emote == "happy"):
-				happy.append(parseImage(path+pic))
+				happy.append(parseImage(path+pic))							
 		foldersize.append(len(os.listdir(path)))
-
 
 		'''HISTOGRAM '''
 	
-
 	for emote in asociations.iterkeys():
 		if(emote == "anger"):
 			label = anger[0]
@@ -70,27 +94,160 @@ def readWithAsoc(asociations):
 	return np.array(outdata), np.array(labels)
 	#common = min(foldersize)
 	#for i in xrange(common):
-'''
-def read():
-	global nrDataPoints, emotionArray, dataMultiplier,classLabels, imageSize, associations
-	training_datapoints = (int)(0.7 * nrDataPoints)
-	data = []
-	labels = []
-	for i in emotionArray:
-		filename = "images/" + str(associations[i])+"-image("+str(imageSize)+", "+str(imageSize)+")0.jpg"
-		#print filename
-		classLabels[i] = parseImage(filename, i)
-	    #classLabels[i] = putLabel(i)
-	    #label for each emotion will be fixed to first image in associated
-	    #categori
-		for j in range(training_datapoints):
-			imagefile = "images/" + str(i)+"-image("+str(imageSize)+", "+str(imageSize)+")"+str(j)+".jpg"
-			#print imagefile
-			parsedImg = parseImage(imagefile, i)
-			for m in xrange(dataMultiplier):
-				data.append(parsedImg)
-				labels.append(classLabels[i])
-	#print data
-	#print classLabels[i].shape
-	return np.array(data), np.array(labels)
-'''
+
+def readProportion(inputEmotions):
+	allData = readAllEmotions()	# could modify to only read the emotions that are needed
+	outdata = []
+	outlabels = [] 
+	finaloutdata = [] 
+	finaloutlabels = []
+	emotionLabels = {}
+
+	for childEmotion in inputEmotions.iterkeys():
+		# take first image in emotion folder
+		labelPath = "kanade/" + childEmotion + "/"
+		labelImage = os.listdir(labelPath)[0]
+		currentLabel = parseImage(labelPath + labelImage)
+		emotionLabels[childEmotion] = np.array(currentLabel) / 255.0
+
+		sumofemotions = 0
+		for parentReaction in inputEmotions[childEmotion].iterkeys():
+			sumofemotions += len(os.listdir("kanade/" + parentReaction))
+
+		maxdiff = 0
+		maxemotion = ""
+		for parentReaction in inputEmotions[childEmotion].iterkeys():
+
+			desiredParentProportion = inputEmotions[childEmotion][parentReaction]
+			availableEmotionData = len(os.listdir("kanade/" + parentReaction))
+			availableEmotionProportion = availableEmotionData/float(sumofemotions)
+
+			if (desiredParentProportion > availableEmotionProportion):
+				diff = desiredParentProportion - availableEmotionProportion
+				if diff > maxdiff:
+					maxdiff = diff
+					maxemotion = parentReaction	
+
+		print maxemotion," needs adjusting"	
+
+		for parentReaction in inputEmotions[childEmotion].iterkeys():
+			tempdata = [] 
+			templabels = []
+			imageList = os.listdir("kanade/" + parentReaction)
+			emotionDatasize = len(imageList)
+			print "parentReaction", parentReaction
+			print "firstImage", imageList[0]
+			wantedEmotionSize = inputEmotions[childEmotion][parentReaction]  * emotionDatasize
+
+			if(maxemotion != ""):
+				adjustedTotal = len(os.listdir("kanade/" + maxemotion)) / inputEmotions[childEmotion][maxemotion]
+				wantedEmotionSize = int(inputEmotions[childEmotion][parentReaction] * adjustedTotal)
+				assert wantedEmotionSize <= emotionDatasize
+
+			assert tempdata == []
+			assert templabels == []
+			for imageIndx in xrange(wantedEmotionSize): # attach (label, data) for all needed images
+				tempdata.append(parseImage("kanade/" + parentReaction + "/" + imageList[imageIndx]))
+				templabels.append(currentLabel)					
+
+			outdata.append(tempdata)
+			outlabels.append(templabels)
+	# equalize size of data for each emotion
+	minsize = len(outdata[0])
+	for dataset in outdata:
+		if len(dataset) < minsize:
+			minsize = len(dataset)
+	for dataset in outdata:
+		finaloutdata += dataset[:minsize]
+		finaloutlabels += dataset[:minsize]
+		print "datasize", len(finaloutdata)
+
+	return np.array(finaloutdata)/255.0, np.array(finaloutlabels)/255.0, emotionLabels
+	'''
+	for emotion in inputEmotions.iterkeys():
+		del outdata[:]
+		del outlabels[:]
+		sumofemotions = 0
+		for reaction in inputEmotions[emotion].iterkeys():
+			sumofemotions += len(allData[reaction])
+
+		for reaction in inputEmotions[emotion].iterkeys():
+			wanted = inputEmotions[emotion][reaction]
+			availabledata = len(allData[reaction])
+			actualprop = availabledata/float(sumofemotions)
+			maxdiff = 0
+			maxemotion = ""
+			if (wanted > actualprop):
+				diff = wanted - actualprop
+				print "test",reaction + str(diff)
+				if diff > maxdiff:
+					maxdiff = diff
+					maxemotion = reaction
+
+
+		if(maxemotion != ""): #the data needs adjusting to meet the requirements of proportion
+			newTotal = len(allData[maxemotion]) / inputEmotions[emotion][maxemotion]
+			for reaction in inputEmotions[emotion].iterkeys():
+				eminstances = int(newTotal * inputEmotions[emotion][reaction])
+				for i in xrange(eminstances):
+					if not emotion in emotionLabels.keys():
+						emotionLabels[emotion] = np.array(allData[emotion][0])
+					outdata.append(allData[reaction][i])
+					outlabels.append(allData[emotion][0])
+
+					#outdata += allData[reaction][i]
+					#outlabels += allData[emotion][0]
+
+		else: #data does not need adjusting
+			for emo in inputEmotions[emotion].iterkeys():
+				if not emotion in emotionLabels.keys():
+					emotionLabels[emotion] = np.array(allData[emotion][0])
+				outdata += allData[emo]
+				outlabels += [allData[emotion][0] for i in xrange(len(allData[emo]))]
+				#outdata += allData[emo]
+				#outlabels += [allData[emotion][0] for i in xrange(len(allData[emo]))]
+
+		print "outdata",np.array(outdata).shape
+		print "labels",type(outlabels)
+		print "datashape",len(outlabels[0])
+
+
+		out[emotion] = (np.array(outdata), np.array(outlabels))
+	'''
+	#return np.array(outdata), np.array(outlabels)
+
+
+def multiplyData(input, degree):
+	for key in input.iterkeys():
+		print "type ",input[key][0].shape
+		noisedDataset = []
+		noisedLabels = []
+		for d in xrange(degree-1):
+			for image in xrange(input[key][0].shape[0]):
+				imagecpy = copy.copy(input[key][0][image,:])
+				labelcpy = copy.copy(input[key][1][image,:])
+				for i in xrange(10):
+					x = random.randint(0, len(imagecpy)-1)
+					y = random.randint(0, len(imagecpy)-1)
+					a = imagecpy[x]
+					imagecpy[x] = imagecpy[y]
+					imagecpy[y] = a
+				noisedDataset.append(imagecpy)
+
+				for i in xrange(10):
+					x = random.randint(0, len(labelcpy)-1)
+					y = random.randint(0, len(labelcpy)-1)
+					a = labelcpy[x]
+					labelcpy[x] = labelcpy[y]
+					labelcpy[y] = a
+				noisedLabels.append(labelcpy)	
+
+		input[key] = (np.vstack((input[key][0], np.array(noisedDataset))), np.vstack((input[key][1], np.array(noisedLabels))))
+
+	print "asdfas",input["happy"][0].shape
+	print "asdfad",input["happy"][1].shape
+	return input
+sadnessSecure = {"happy": 0.8, "anger":0.1, "sadness": 0.1}
+happySecure = {"happy": 1}
+childEmotions = {"happy": happySecure, "sadness": sadnessSecure}
+readProportion(childEmotions)

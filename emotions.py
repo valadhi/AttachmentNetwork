@@ -102,12 +102,12 @@ SMALL_SIZE = ((50, 25))
 def learnEmotions(emotions):
   for e in emotions:
     data = readKanade.readEmotion(e)
-    data = data/255
+    data = data/255.0
     np.random.shuffle(data)
     nrVisible = len(data[0])
     nrHidden = 800
     activationFunction = Sigmoid()
-    net = rbm.RBM(nrVisible, nrHidden, 1.4, 0.75, 0.75,
+    net = rbm.RBM(nrVisible, nrHidden, 0.1, 0.5, 0.8,
               visibleActivationFunction=activationFunction,
               hiddenActivationFunction=activationFunction,
               rmsprop=args.rbmrmsprop,
@@ -138,10 +138,13 @@ def rbmEmotions(big=False, reconstructRandom=False):
 
   emotions = ["fear", "happy", "anger", "contempt", "disgust", "sadness", "surprise"]
   asoc = {"fear": "happy", "anger":"fear", "happy":"anger"}
-  learnEmotions(emotions)
-  '''
+  fullsize = (50,25)
+  
+  #learnEmotions(emotions)
+  
   data, labels = readKanade.readWithAsoc(asoc)
-
+  
+  
   print "data.shape"
   print data.shape
   print "labels.shape",labels.shape
@@ -158,7 +161,7 @@ def rbmEmotions(big=False, reconstructRandom=False):
   else:
     activationFunction = Sigmoid()
 
-  #trainData = data[0:-1, :]
+ 
   Data = np.concatenate((data, labels), axis=1)
   np.random.shuffle(Data)
   trainData = Data[0:-1, :]
@@ -171,7 +174,7 @@ def rbmEmotions(big=False, reconstructRandom=False):
     nrVisible = len(trainData[0])
     nrHidden = 800
     # use 1 dropout to test the rbm for now
-    net = rbm.RBM(nrVisible, nrHidden, 0.1, 1, 1,
+    net = rbm.RBM(nrVisible, nrHidden, 0.01, 1, 1,
                   visibleActivationFunction=activationFunction,
                   hiddenActivationFunction=activationFunction,
                   rmsprop=args.rbmrmsprop,
@@ -221,9 +224,9 @@ def rbmEmotions(big=False, reconstructRandom=False):
   recon1 = net.reconstruct(recon1)
   recon2 = net.reconstruct(recon2)
   recon3 = net.reconstruct(recon3)
-  saveImage(recon1, "recon1")
-  saveImage(recon2, "recon2")
-  saveImage(recon3, "recon3")
+  saveImage(recon1, "recon1", (fullsize))
+  saveImage(recon2, "recon2", (fullsize))
+  saveImage(recon3, "recon3", (fullsize))
 
   recon = net.reconstruct(test.reshape(1, test.shape[0]))
   print recon.shape
@@ -256,7 +259,7 @@ def rbmEmotions(big=False, reconstructRandom=False):
     f = open(args.netFile, "wb")
     pickle.dump(t, f)
     pickle.dump(net, f)
-'''
+
 
 def saveImage(data, name, size):
   plt.imshow(vectorToImage(data, size), cmap=plt.cm.gray)
