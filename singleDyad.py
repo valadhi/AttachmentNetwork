@@ -10,6 +10,11 @@ from activationfunctions import *
 parser.add_argument('--save',dest='save',action='store_true', default=False,
                     help="if true, the network is serialized and saved")
 '''
+
+small_size = (25,25)
+large_size = (50,50)
+size = large_size
+
 def buildParent(inputEmotions): # trains network with emotional associations
 
 	#asoc = {"fear": "happy", "anger":"fear", "happy":"anger"}
@@ -18,19 +23,31 @@ def buildParent(inputEmotions): # trains network with emotional associations
 	print "data.shape"
 	print data.shape
 	print "labels.shape",labels.shape
-	#data = data / 255.0
-	#labels = labels / 255.0
 
+	print type(data)
+	print type(labels)
+	data = data / 255.0
+	labels = labels / 255.0
+	'''
+	print "before trial"
+	for k in childLabelList.iterkeys():
+		print k
+		saveImage(childLabelList[k], k, size, "labels")
+	for i in xrange(len(data)):
+		saveImage(data[i], str(i)+"data", size, "data")
+		saveImage(labels[i], str(i)+"label", size, "labels")
+	print "after trial"
+	'''
 	activationFunction = Sigmoid()
 
 	Data = np.concatenate((data, labels), axis=1)
-	np.random.shuffle(Data)
+	#np.random.shuffle(Data)
 	finalTrainingData = Data[0:-1, :]
 
 	nrVisible = len(finalTrainingData[0])
 	nrHidden = 800
 
-	net = rbm.RBM(nrVisible, nrHidden, 0.01, 1, 1,
+	net = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
 					visibleActivationFunction=activationFunction,
 					hiddenActivationFunction=activationFunction,
 					rmsprop=True,#args.rbmrmsprop,
@@ -42,7 +59,7 @@ def buildParent(inputEmotions): # trains network with emotional associations
 					fixedLabel = True)
 
 	net.train(finalTrainingData)
-	t = visualizeWeights(net.weights.T, (50,25), (10,10))
+	t = visualizeWeights(net.weights.T, (size[0]*2,size[1]), (10,10))
 	plt.imshow(t, cmap=plt.cm.gray)
 	plt.axis('off')
 	plt.savefig('dump/weights.png', transparent=True)
@@ -56,8 +73,8 @@ def saveImageFoo(data, name, size):
 
 def interactChild(parentNet, childDataSetOfEmotions):
 	# 1. feed the child emotions into parent
-	rando = np.random.random_sample((25,25))
-	rando = rando.reshape(1, 625)
+	rando = np.random.random_sample(size)
+	rando = rando.reshape(1, size[0]**2)
 	#aveImage(rando, "rando_",(25,25), "parentchildoutput")	
 	#print rando
 
@@ -73,7 +90,7 @@ def interactChild(parentNet, childDataSetOfEmotions):
 		#saveImage(recon, key+"_",(50,25), "parentchildoutput")
 		#print "RANDOM ########## ",emotion		
 		recon = parentNet.reconstruct(recon,300)
-		saveImage(recon, key,(50,25), "parentchildoutput")
+		saveImage(recon, key,(size[0]*2,size[1]), "parentchildoutput")
 
 	# 2. train the child on the outputs from the parent	
 	# 3. classify the resulting emotion
@@ -92,7 +109,7 @@ def saveImage(data, name, size,temp=""):
 def main():
 
 	sadnessSecure = {"happy": 1}
-	happySecure = {"sadness":1}
+	happySecure = {"happy":1, "anger":0.1, "surprise":0.1}
 	childEmotions = {"happy": happySecure, "sadness": sadnessSecure}
 	childLabels = {"happy": None, "sadness": None}
 	childEmotionalProportions = {"happy": 0.4, "sadness": 0.6}

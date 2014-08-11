@@ -2,15 +2,20 @@ import os.path
 import numpy as np
 import cv2
 import random,copy
+import matplotlib.pyplot as plt
+from common import *
 
-imageSize = 25
 #emotionArray = ["anger","contempt","disgust","fear","happy","sadness","surprise"]
 #kanadeEmotions = {1:"anger", 2:"contempt", 3:"disgust", 4:"fear", 5:"happy", 6:"sadness", 7:"surprise"}
 
-labelBits = imageSize**2
 classLabels = {}
 totHidden = 3
 dataMultiplier = 2
+small_size = (25,25)
+large_size = (50,50)
+size = large_size
+sizeName = str(size[0]) + "_" + str(size[1])
+pathData = "kanade/"+ str(sizeName) + "/"
 
 #parse images in array bit format
 def parseImage(path):
@@ -37,7 +42,7 @@ def readAllEmotions():
 	data = {"fear": [], "happy": [], "anger": [], "contempt": [], "disgust": [], "sadness": [], "surprise": []}
   	emotions = ["fear", "happy", "anger", "contempt", "disgust", "sadness", "surprise"]
 	for emote in emotions:
-		path = "kanade/" + emote + "/"
+		path = pathData + emote + "/"
 		for pic in os.listdir(path):
 			if(emote == "anger"):
 				data["anger"].append(parseImage(path+pic))
@@ -68,7 +73,7 @@ def readWithAsoc(asociations):
 	#add all parsed pictures to the dictionary of emotions
 	data = {"anger":anger, "fear": fear, "happy": happy}
 	for emote in asociations.iterkeys():
-		path = "kanade/" + emote + "/"
+		path = pathData + emote + "/"
 		for pic in os.listdir(path):
 			if(emote == "anger"):
 				anger.append(parseImage(path+pic))
@@ -94,7 +99,15 @@ def readWithAsoc(asociations):
 	return np.array(outdata), np.array(labels)
 	#common = min(foldersize)
 	#for i in xrange(common):
-
+def saveImage(data, name, size,temp=""):
+	plt.imshow(vectorToImage(data, size), cmap=plt.cm.gray)
+	plt.axis('off')
+	if temp == "":
+		plt.savefig("dump/"+name + '.png',transparent=True) 
+	else:
+		if(not os.path.exists("dump/"+temp+"/")):
+			os.makedirs("dump/"+temp+"/")
+		plt.savefig("dump/"+ temp + "/"+name + '.png',transparent=True) 
 def readProportion(inputEmotions):
 	allData = readAllEmotions()	# could modify to only read the emotions that are needed
 	outdata = []
@@ -102,24 +115,24 @@ def readProportion(inputEmotions):
 	finaloutdata = [] 
 	finaloutlabels = []
 	emotionLabels = {}
-
+	
 	for childEmotion in inputEmotions.iterkeys():
 		# take first image in emotion folder
-		labelPath = "kanade/" + childEmotion + "/"
+		labelPath = pathData + childEmotion + "/"
 		labelImage = os.listdir(labelPath)[0]
 		currentLabel = parseImage(labelPath + labelImage)
 		emotionLabels[childEmotion] = np.array(currentLabel) / 255.0
 
 		sumofemotions = 0
 		for parentReaction in inputEmotions[childEmotion].iterkeys():
-			sumofemotions += len(os.listdir("kanade/" + parentReaction))
+			sumofemotions += len(os.listdir(pathData + parentReaction))
 
 		maxdiff = 0
 		maxemotion = ""
 		for parentReaction in inputEmotions[childEmotion].iterkeys():
 
 			desiredParentProportion = inputEmotions[childEmotion][parentReaction]
-			availableEmotionData = len(os.listdir("kanade/" + parentReaction))
+			availableEmotionData = len(os.listdir(pathData + parentReaction))
 			availableEmotionProportion = availableEmotionData/float(sumofemotions)
 
 			if (desiredParentProportion > availableEmotionProportion):
@@ -133,25 +146,28 @@ def readProportion(inputEmotions):
 		for parentReaction in inputEmotions[childEmotion].iterkeys():
 			tempdata = [] 
 			templabels = []
-			imageList = os.listdir("kanade/" + parentReaction)
+			imageList = os.listdir(pathData + parentReaction)
 			emotionDatasize = len(imageList)
 			print "parentReaction", parentReaction
 			print "firstImage", imageList[0]
 			wantedEmotionSize = inputEmotions[childEmotion][parentReaction]  * emotionDatasize
 
 			if(maxemotion != ""):
-				adjustedTotal = len(os.listdir("kanade/" + maxemotion)) / inputEmotions[childEmotion][maxemotion]
+				adjustedTotal = len(os.listdir(pathData + maxemotion)) / inputEmotions[childEmotion][maxemotion]
 				wantedEmotionSize = int(inputEmotions[childEmotion][parentReaction] * adjustedTotal)
 				assert wantedEmotionSize <= emotionDatasize
 
 			assert tempdata == []
 			assert templabels == []
 			for imageIndx in xrange(wantedEmotionSize): # attach (label, data) for all needed images
-				tempdata.append(parseImage("kanade/" + parentReaction + "/" + imageList[imageIndx]))
-				templabels.append(currentLabel)					
+				tempdata.append(parseImage(pathData + parentReaction + "/" + imageList[imageIndx]))
+				templabels.append(currentLabel)
+				#outdata.append(parseImage(pathData + parentReaction + "/" + imageList[imageIndx]))
+				#outlabels.append(currentLabel)									
 
 			outdata.append(tempdata)
 			outlabels.append(templabels)
+	
 	# equalize size of data for each emotion
 	minsize = len(outdata[0])
 	for dataset in outdata:
@@ -159,10 +175,11 @@ def readProportion(inputEmotions):
 			minsize = len(dataset)
 	for dataset in outdata:
 		finaloutdata += dataset[:minsize]
+	for dataset in outlabels:
 		finaloutlabels += dataset[:minsize]
-		print "datasize", len(finaloutdata)
+	
 
-	return np.array(finaloutdata)/255.0, np.array(finaloutlabels)/255.0, emotionLabels
+	return np.array(finaloutdata) / 255.0, np.array(finaloutlabels) / 255.0, emotionLabels
 	'''
 	for emotion in inputEmotions.iterkeys():
 		del outdata[:]

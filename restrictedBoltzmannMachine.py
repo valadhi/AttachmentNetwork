@@ -127,14 +127,14 @@ class ReconstructerBatch(object):
     # The hidden layers up to the last one, like Hinton suggests
     def OneCDStep(visibleSample):#keep the label fixed
 
-      label = visibleSample[:,625:]
+      label = visibleSample[:,50**2:]
 
       linearSum = T.dot(visibleSample, self.weightsForHidden) + hiddenBias
       hidden = hiddenActivationFunction.nonDeterminstic(linearSum)
       linearSum = T.dot(hidden, self.weightsForVisible) + visibleBias
       visibleRec = visibleActivationFunction.deterministic(linearSum)
       
-      visibleRec = T.set_subtensor(visibleRec[:,625:], label)
+      visibleRec = T.set_subtensor(visibleRec[:,50**2:], label)
       return visibleRec
 
     visibleSeq, updates = theano.scan(OneCDStep,
