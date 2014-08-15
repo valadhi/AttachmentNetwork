@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from common import *
 
 #emotionArray = ["anger","contempt","disgust","fear","happy","sadness","surprise"]
-#kanadeEmotions = {1:"anger", 2:"contempt", 3:"disgust", 4:"fear", 5:"happy", 6:"sadness", 7:"surprise"}
+kanadeEmotions = {"anger":1, "contempt":2, "disgust":3, "fear":4, "happy":5, "sadness":6, "surprise":7}
 
 classLabels = {}
 totHidden = 3
@@ -34,16 +34,29 @@ def parseImage(path):
 # reads the data for a single emotion
 def readEmotion(emo):
 	out = []
-	for fil in os.listdir("kanade/"+emo):
-		out.append(parseImage("kanade/"+emo+"/"+fil))
+	for pic in os.listdir("kanade/"+emo):
+		out.append(parseImage("kanade/"+emo+"/"+pic))
 	return np.array(out)
 
+def genLabel(emotion):
+	label = []
+	for i in xrange(kanadeEmotions[emotion]):
+		label.append(1)
+	label = label + [0]*(7 - len(label))
+	return label
+
 def readAllEmotions():
-	data = {"fear": [], "happy": [], "anger": [], "contempt": [], "disgust": [], "sadness": [], "surprise": []}
+	#data = {"fear": [], "happy": [], "anger": [], "contempt": [], "disgust": [], "sadness": [], "surprise": []}
+  	data = []
+  	labels = {}
   	emotions = ["fear", "happy", "anger", "contempt", "disgust", "sadness", "surprise"]
 	for emote in emotions:
 		path = pathData + emote + "/"
+		labels[emote] = genLabel(emote)
 		for pic in os.listdir(path):
+			data.append([x / 255.0 for x in parseImage(path+pic)] + 
+				[int(x) for x in genLabel(emote)])
+			'''
 			if(emote == "anger"):
 				data["anger"].append(parseImage(path+pic))
 			elif(emote == "fear"):
@@ -58,9 +71,10 @@ def readAllEmotions():
 				data["surprise"].append(parseImage(path+pic))
 			elif(emote == "contempt"):
 				data["contempt"].append(parseImage(path+pic))
+			'''
 	#print "DATA",np.array(data["anger"][0])
 
-	return data
+	return np.array(data), labels
 
 # reads the data for the given associations
 def readWithAsoc(asociations):

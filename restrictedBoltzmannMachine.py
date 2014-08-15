@@ -126,7 +126,6 @@ class ReconstructerBatch(object):
     # This does not sample the visible layers, but samples
     # The hidden layers up to the last one, like Hinton suggests
     def OneCDStep(visibleSample):#keep the label fixed
-
       label = visibleSample[:,50**2:]
 
       linearSum = T.dot(visibleSample, self.weightsForHidden) + hiddenBias
@@ -538,9 +537,8 @@ class RBM(object):
     # so send the data in via mini bathes for reconstruction as well
 
   def reconstruct(self, dataInstances, cdSteps=1):
-    print "enters  reconstruct ", cdSteps
+    print "enters  reconstruct, steps: ", cdSteps
     dataInstacesConverted = theano.shared(np.asarray(dataInstances, dtype=theanoFloat))
-    print self.reconstructer.fixedLabel
 
     #print "reconstruct1",dataInstances.shape
     reconstructFunction = theano.function(
