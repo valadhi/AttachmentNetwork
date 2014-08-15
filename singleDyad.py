@@ -149,8 +149,8 @@ def interactChild(parentNet, childDataSetOfEmotions):
 	activationFunction = Sigmoid()
 
 	print "visible1 ",nrVisible
-	print "data1 ",data.shape
-	print "data row1 ",data[0,:].shape 
+	print "data1 ",parentResponses.shape
+	print "data row1 ",parentResponses[0,:].shape 
 
 	net = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
 					visibleActivationFunction=activationFunction,
@@ -183,13 +183,13 @@ def trainEmotionClassifier():
 	# data contains labels as well 
 	data, labels = readKanade.readAllEmotions()
 
-	nrVisible = len(data)
+	nrVisible = len(data[0])
 	nrHidden = 80
 	activationFunction = Sigmoid()
 
 	print "visible ",nrVisible
 	print "data ",data.shape
-	print "data row ",data[0,:].shape 
+	print "data row ",data[0,:] 
 
 	net = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
 					visibleActivationFunction=activationFunction,
@@ -202,7 +202,7 @@ def trainEmotionClassifier():
 					sparsityTraget=0.01,
 					fixedLabel = True)
 
-	net.train(data)
+	net.train(data[:80,:])
 	return net, labels
 
 def runEmoEval(Classifier, emoLabels, emotions):

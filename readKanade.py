@@ -42,7 +42,7 @@ def genLabel(emotion):
 	label = []
 	for i in xrange(kanadeEmotions[emotion]):
 		label.append(1)
-	label = label + [0]*(7 - len(label))
+	label = label + [0]*(10 - len(label))
 	return label
 
 def readAllEmotions():
