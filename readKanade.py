@@ -43,6 +43,7 @@ def genLabel(emotion):
 	for i in xrange(kanadeEmotions[emotion]):
 		label.append(1)
 	label = label + [0]*(10 - len(label))
+	print "LABEL: ",label
 	return label
 
 def readAllEmotions():
@@ -76,6 +77,38 @@ def readAllEmotions():
 
 	return np.array(data), labels
 
+def readAllEmotionssk():
+	#data = {"fear": [], "happy": [], "anger": [], "contempt": [], "disgust": [], "sadness": [], "surprise": []}
+  	data = []
+  	labels = []
+  	emotions = ["fear", "happy","anger","contempt","disgust","sadness","surprise"]
+  	emotionsdct = {"fear":1, "happy":2,"anger":3,"contempt":4,"disgust":5,"sadness":6,"surprise":7}
+	for emote in emotions:
+		path = pathData + emote + "/"
+		#labels[emote] = genLabel(emote)
+		for pic in os.listdir(path):
+			data.append([x / 255.0 for x in parseImage(path+pic)])
+			#data.append([0 if x < 127 else 1 for x in parseImage(path+pic)])
+			labels.append(emotionsdct[emote])
+			'''
+			if(emote == "anger"):
+				data["anger"].append(parseImage(path+pic))
+			elif(emote == "fear"):
+				data["fear"].append(parseImage(path+pic))
+			elif(emote == "happy"):
+				data["happy"].append(parseImage(path+pic))
+			elif(emote == "disgust"):
+				data["disgust"].append(parseImage(path+pic))
+			elif(emote == "sadness"):
+				data["sadness"].append(parseImage(path+pic))
+			elif(emote == "surprise"):
+				data["surprise"].append(parseImage(path+pic))
+			elif(emote == "contempt"):
+				data["contempt"].append(parseImage(path+pic))
+			'''
+	#print "DATA",np.array(data["anger"][0])
+
+	return np.array(data), np.array(labels)
 # reads the data for the given associations
 def readWithAsoc(asociations):
 	foldersize = []
@@ -278,7 +311,9 @@ def multiplyData(input, degree):
 	print "asdfas",input["happy"][0].shape
 	print "asdfad",input["happy"][1].shape
 	return input
+'''
 sadnessSecure = {"happy": 0.8, "anger":0.1, "sadness": 0.1}
 happySecure = {"happy": 1}
 childEmotions = {"happy": happySecure, "sadness": sadnessSecure}
 readProportion(childEmotions)
+'''

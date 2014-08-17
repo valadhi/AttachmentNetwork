@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from common import *
 import os, argparse
 from activationfunctions import *
+from sklearn import linear_model#,metrics
 
 parser = argparse.ArgumentParser(description='dyad simulation')
 parser.add_argument('--saveParent',dest='saveParent',action='store_true', default=False,
@@ -93,6 +94,7 @@ def saveImageFoo(data, name, size):
   plt.axis('off')
   plt.savefig("dump/"+name + '.png',transparent=True) 
 
+# returns emotion dictionary of {"emotion" : ndarray of resulting image}
 def interactChild(parentNet, childDataSetOfEmotions):
 	outputEmotions = childDataSetOfEmotions
 	# 1. feed the child emotions into parent
@@ -159,7 +161,7 @@ def interactChild(parentNet, childDataSetOfEmotions):
 					nesterov=True,#args.rbmnesterov,
 					sparsityConstraint=False,#args.sparsity,
 					sparsityRegularization=0.5,
-					trainingEpochs=15,#args.maxEpochs,
+					trainingEpochs=45,#args.maxEpochs,
 					sparsityTraget=0.01,
 					fixedLabel = True)
 
@@ -178,6 +180,37 @@ def interactChild(parentNet, childDataSetOfEmotions):
 
 	# 3. classify the resulting emotion
 	return outputEmotions
+
+def scikitclassifier():
+	X, Y = readKanade.readAllEmotionssk()
+
+	'''
+	Xtest = X[-1]
+	Ytest = Y[-1]
+	X = X[:-1]
+	Y = Y[:-1]
+	print("X",X.shape)
+	print("Y",Y.shape)
+	X = (X - np.min(X, 0)) / (np.max(X, 0) + 0.0001)  # 0-1 scaling
+
+	X_train, X_test, Y_train, Y_test = train_test_split(X, Y,
+	                                                    test_size=0.2,
+	                                                    random_state=0)
+	'''
+	# Training Logistic regression
+	logistic_classifier = linear_model.LogisticRegression(C=100.0)
+	logistic_classifier.fit(X, Y)
+
+	###############################################################################
+	# Evaluation
+
+	'''
+	print("Logistic regression using raw pixel features:\n%s\n" % (
+	    metrics.classification_report(
+	        Y_test,
+	        logistic_classifier.predict(X_test))))
+	'''
+	return logistic_classifier
 
 def trainEmotionClassifier():
 	# data contains labels as well 
@@ -198,7 +231,7 @@ def trainEmotionClassifier():
 					nesterov=True,#args.rbmnesterov,
 					sparsityConstraint=False,#args.sparsity,
 					sparsityRegularization=0.5,
-					trainingEpochs=35,#args.maxEpochs,
+					trainingEpochs=45,#args.maxEpochs,
 					sparsityTraget=0.01,
 					fixedLabel = True)
 
@@ -207,11 +240,16 @@ def trainEmotionClassifier():
 
 def runEmoEval(Classifier, emoLabels, emotions):
 	for emote in emotions.iterkeys():
-		rando = np.random.random_sample(7)
-		recon = np.concatenate((rando, emotion), axis=1)
-		recon = Classifier.reconstruct(recon, 30)
+		emotion = emotions[emote][:,:size[0]**2]# first half is reconstructed bit
 
-		label = recon[:,50**2:]
+		rando = np.random.random_sample(10)
+		rando = rando.reshape(1, 10)
+		print "emote ",emotion.shape
+		print "rando ",rando.shape
+		recon = np.concatenate((emotion, rando), axis=1)
+		recon = Classifier.reconstruct(recon, 3000)
+
+		label = recon[:,size[0]**2:]
 
 		print "returned label ", label
 		'''
@@ -224,6 +262,14 @@ def runEmoEval(Classifier, emoLabels, emotions):
 						print "expected label: ",key	
 			print "reconstruct returned: ",label 
 		'''
+
+def emoEval(classifier, emotions):
+	emotionsdct = {1:"fear", 2:"happy",3:"anger",4:"contempt",5:"disgust",6:"sadness",7:"surprise"}
+	for emote in emotions.iterkeys():	
+		emotion = emotions[emote][:,:size[0]**2]# first half is reconstructed bit
+
+		#print "Emotion: ",emotionsdct[classifier.predict(emotion)]
+		print "Emotion: ",classifier.predict(emotion)
 
 def saveImage(data, name, size,temp=""):
 	plt.imshow(vectorToImage(data, size), cmap=plt.cm.gray)
@@ -251,10 +297,11 @@ def main():
 		saveImage(emotion, key+"ceprimim",(25,25), "parentchildoutput")
 	'''
 	emotionResponses = interactChild(net, childLabels)	
-	emoClassifier, emoLabels = trainEmotionClassifier()
+	#emoClassifier, emoLabels = trainEmotionClassifier()
 
 
-	runEmoEval(emoClassifier, emoLabels, emotionResponses)
+	emoEval(scikitclassifier(), emotionResponses)
+	#runEmoEval(emoClassifier, emoLabels, emotionResponses)
 	print "exited"
 
 if __name__ == '__main__':
