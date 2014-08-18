@@ -9,31 +9,36 @@ from activationfunctions import *
 from sklearn import linear_model#,metrics
 
 parser = argparse.ArgumentParser(description='dyad simulation')
-parser.add_argument('--saveParent',dest='saveParent',action='store_true', default=False,
-					help="if true, the data returnet from parent network is saved")
-parser.add_argument('--loadParent',dest='loadParent',action='store_true', default=False,
-					help="if true, the data from parent network is loaded")
-parser.add_argument('--saveNet',dest='saveNet',action='store_true', default=False,
-					help="if true, the parent network is saved")
-parser.add_argument('--loadNet',dest='loadNet',action='store_true', default=False,
+parser.add_argument('--trainParent',dest="trainParent", help="train and save Parent net"
+	, default = False )
+parser.add_argument('--trainChild',dest="trainChild", 
+	help="generate training data from parent and train child net", default = False)
+parser.add_argument('--loadParent',dest='loadParent', default=False,
 					help="if true, the parent network is loaded")
-parser.add_argument('--tempData', dest="tempData", help="file where the parent data should be saved")
-parser.add_argument('--tempNet',dest="tempNet", help="file where the network should be saved")
+parser.add_argument('--loadChild',dest='loadChild', default=False,
+					help="if true, the child network is loaded")
+#parser.add_argument('--classify',dest='classify',action='store_true', default=False,
+#					help="if true, the child network is loaded")
 
 args = parser.parse_args()
+argsdict = vars(args)
 
+for k in argsdict.iterkeys():
+	print k, type(k)
+	print argsdict[k]
+	print "#####"
 small_size = (25,25)
 large_size = (50,50)
 size = large_size
 
 def buildParent(inputEmotions): # trains network with emotional associations	
-	if args.loadNet:
-		print "in load"
-		f = open(args.tempNet, "rb")
-		net = pickle.load(f)
+	if argsdict["loadParent"] != False:
+		print "in load parentNet"
+		f = open(argsdict["loadParent"], "rb")
+		parentNet = pickle.load(f)
 		childLabelList = pickle.load(f)
 		f.close()
-		print "out of load net"
+		print "out of load parentNet"
 	else:
 		#asoc = {"fear": "happy", "anger":"fear", "happy":"anger"}
 		#childLabelList = {"happy":None, "anger":None, "fear":None}
@@ -66,7 +71,7 @@ def buildParent(inputEmotions): # trains network with emotional associations
 		nrHidden = 800
 
 
-		net = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
+		parentNet = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
 						visibleActivationFunction=activationFunction,
 						hiddenActivationFunction=activationFunction,
 						rmsprop=True,#args.rbmrmsprop,
@@ -77,17 +82,17 @@ def buildParent(inputEmotions): # trains network with emotional associations
 						sparsityTraget=0.01,
 						fixedLabel = True)
 
-		net.train(finalTrainingData)
-		t = visualizeWeights(net.weights.T, (size[0]*2,size[1]), (10,10))
+		parentNet.train(finalTrainingData)
+		t = visualizeWeights(parentNet.weights.T, (size[0]*2,size[1]), (10,10))
 		plt.imshow(t, cmap=plt.cm.gray)
 		plt.axis('off')
 		plt.savefig('dump/weights.png', transparent=True)
 
-	if args.saveNet:
-		with open(args.tempNet, "wb") as f:
-				pickle.dump(net, f)
-				pickle.dump(childLabelList, f)
-	return net, childLabelList
+	if argsdict["trainParent"] != False:
+		with open(argsdict["trainParent"], "wb") as f:
+			pickle.dump(parentNet, f)
+			pickle.dump(childLabelList, f)
+	return parentNet, childLabelList
 
 def saveImageFoo(data, name, size):
   plt.imshow(vectorToImage(data, size), cmap=plt.cm.gray)
@@ -105,7 +110,7 @@ def interactChild(parentNet, childDataSetOfEmotions):
 	#print rando
 	parentResponses = np.array([])
 	'''
-	# generate sample images as returned from parent net for each child emotion
+	# generate sample images as returned from parent childNet for each child emotion
 	for key in childDataSetOfEmotions.iterkeys():
 		emotion = childDataSetOfEmotions[key]
 		emotion = emotion.reshape(1, emotion.shape[0])
@@ -115,16 +120,20 @@ def interactChild(parentNet, childDataSetOfEmotions):
 	'''
 	print "enter interact"
 
-	if args.loadParent: # load previously generated parent emotional feedback database
-		f = open(args.tempData, "rb")
-		parentResponses = pickle.load(f)
+	if argsdict["loadChild"] != False: # load previously generated parent emotional feedback database
+		f = open(argsdict["loadChild"], "rb")
+		childNet = pickle.load(f)
+		#parentResponses = pickle.load(f)
 		f.close()
-	else:# generate new parent emotional feedback database
+	else:# generate new parent emotional feedback database and train child
 		for key in childDataSetOfEmotions.iterkeys():
 			for s in xrange(sizeOfParentFeedback):
 				emotion = childDataSetOfEmotions[key]
+				print "emotion ",emotion
 				emotion = emotion.reshape(1, emotion.shape[0])
 				recon = np.concatenate((rando, emotion), axis=1)
+				print "recon shape ",recon.shape
+				print "type ",recon[0,1],type(recon[0,1])
 				recon = parentNet.reconstruct(recon,30)
 				if parentResponses.size == 0:
 					parentResponses = recon
@@ -132,40 +141,43 @@ def interactChild(parentNet, childDataSetOfEmotions):
 					parentResponses = np.vstack((parentResponses, recon))
 				#saveImage(recon, key,(size[0]*2,size[1]), "parentchildoutput")
 
-	if args.saveParent:
-		with open(args.tempData, "wb") as f:
-				pickle.dump(parentResponses, f)
+	
+		print "parentShape ",parentResponses.shape
 
-	print "parentShape ",parentResponses.shape
+		'''
+		print "before saving all parent emotional feedback"
+		for k in xrange(parentResponses.shape[0]):
+			saveImage(parentResponses[k,:], str(k), (size[0]*2,size[1]), "parentResponses")
+		print "after saving all parent emotional feedback"
+		'''
 
-	'''
-	print "before saving all parent emotional feedback"
-	for k in xrange(parentResponses.shape[0]):
-		saveImage(parentResponses[k,:], str(k), (size[0]*2,size[1]), "parentResponses")
-	print "after saving all parent emotional feedback"
-	'''
+		# 2. train the child on the outputs from the parent	
+		nrVisible = len(parentResponses[0])
+		nrHidden = 800
+		activationFunction = Sigmoid()
 
-	# 2. train the child on the outputs from the parent	
-	nrVisible = len(parentResponses[0])
-	nrHidden = 800
-	activationFunction = Sigmoid()
+		print "visible1 ",nrVisible
+		print "data1 ",parentResponses.shape
+		print "data row1 ",parentResponses[0,:].shape 
 
-	print "visible1 ",nrVisible
-	print "data1 ",parentResponses.shape
-	print "data row1 ",parentResponses[0,:].shape 
+		childNet = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
+						visibleActivationFunction=activationFunction,
+						hiddenActivationFunction=activationFunction,
+						rmsprop=True,#args.rbmrmsprop,
+						nesterov=True,#args.rbmnesterov,
+						sparsityConstraint=False,#args.sparsity,
+						sparsityRegularization=0.5,
+						trainingEpochs=15,#args.maxEpochs,
+						sparsityTraget=0.01,
+						fixedLabel = True)
 
-	net = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
-					visibleActivationFunction=activationFunction,
-					hiddenActivationFunction=activationFunction,
-					rmsprop=True,#args.rbmrmsprop,
-					nesterov=True,#args.rbmnesterov,
-					sparsityConstraint=False,#args.sparsity,
-					sparsityRegularization=0.5,
-					trainingEpochs=45,#args.maxEpochs,
-					sparsityTraget=0.01,
-					fixedLabel = True)
+		childNet.train(parentResponses)
 
-	net.train(parentResponses)
+	if argsdict["trainChild"] != False:
+		with open(argsdict["trainChild"], "wb") as f:
+				pickle.dump(childNet, f)
+				#pickle.dump(parentResponses, f)
+
 
 	# generate emotions from network trained on parent emotional feedback
 	for key in childDataSetOfEmotions.iterkeys():
@@ -174,8 +186,8 @@ def interactChild(parentNet, childDataSetOfEmotions):
 		emotion = emotion.reshape(1, emotion.shape[0]) 
 		recon = np.concatenate((rando, emotion), axis=1)
 		print "recon shape ",recon.shape
-		recon = net.reconstruct(recon,300)
-		outputEmotions[key] = recon
+		recon = childNet.reconstruct(recon,30)
+		outputEmotions[key] = recon[:,:size[0]**2]# first half is reconstructed bit
 		saveImage(recon, key+"afterParent1",(size[0]*2,size[1]), "parentchildoutput")
 
 	# 3. classify the resulting emotion
@@ -266,10 +278,13 @@ def runEmoEval(Classifier, emoLabels, emotions):
 def emoEval(classifier, emotions):
 	emotionsdct = {1:"fear", 2:"happy",3:"anger",4:"contempt",5:"disgust",6:"sadness",7:"surprise"}
 	for emote in emotions.iterkeys():	
-		emotion = emotions[emote][:,:size[0]**2]# first half is reconstructed bit
+		emotion = emotions[emote]
+		saveImage(emotion, emote+"FINAL",(50, 50), "parentchildoutput")
 
 		#print "Emotion: ",emotionsdct[classifier.predict(emotion)]
-		print "Emotion: ",classifier.predict(emotion)
+		prediction = classifier.predict(emotion)
+		print "Emotion: ",prediction
+		print "Expected ",emote," ",emotionsdct[prediction[0]]
 
 def saveImage(data, name, size,temp=""):
 	plt.imshow(vectorToImage(data, size), cmap=plt.cm.gray)
@@ -283,7 +298,7 @@ def saveImage(data, name, size,temp=""):
 
 def main():
 
-	sadnessSecure = {"happy": 1}
+	sadnessSecure = {"happy": 0.8, "surprise":0.2}
 	happySecure = {"sadness":1}
 	childEmotions = {"happy": happySecure, "sadness": sadnessSecure}
 	childLabels = {"happy": None, "sadness": None}
@@ -296,9 +311,8 @@ def main():
 		emotion = childLabels[key]
 		saveImage(emotion, key+"ceprimim",(25,25), "parentchildoutput")
 	'''
-	emotionResponses = interactChild(net, childLabels)	
+	emotionResponses = interactChild(net, childLabels)
 	#emoClassifier, emoLabels = trainEmotionClassifier()
-
 
 	emoEval(scikitclassifier(), emotionResponses)
 	#runEmoEval(emoClassifier, emoLabels, emotionResponses)

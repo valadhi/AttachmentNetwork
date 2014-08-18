@@ -541,6 +541,7 @@ class RBM(object):
     dataInstacesConverted = theano.shared(np.asarray(dataInstances, dtype=theanoFloat))
 
     #print "reconstruct1",dataInstances.shape
+    #print "reconstruct",dataInstances
     reconstructFunction = theano.function(
             inputs=[],
             outputs=self.reconstructer.visibleReconstruction,
