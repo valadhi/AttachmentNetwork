@@ -371,6 +371,9 @@ def deepbeliefKanadeCV(big=False):
 
 
 def deepbeliefKanade(big=False):
+  emotions = ["fear", "happy", "anger", "contempt", "disgust", "sadness", "surprise"]
+  for e in emotions:
+    data = readKanade.readEmotion(e)
   data, labels = readKanade(big, None, equalize=args.equalize)
 
   data, labels = shuffle(data, labels)

@@ -50,7 +50,7 @@ def readAllEmotions():
 	#data = {"fear": [], "happy": [], "anger": [], "contempt": [], "disgust": [], "sadness": [], "surprise": []}
   	data = []
   	labels = {}
-  	emotions = ["fear", "happy", "anger", "contempt", "disgust", "sadness", "surprise"]
+  	emotions = ["fear", "happy", "anger", "disgust", "sadness", "surprise"]
 	for emote in emotions:
 		path = pathData + emote + "/"
 		labels[emote] = genLabel(emote)
@@ -155,6 +155,7 @@ def saveImage(data, name, size,temp=""):
 		if(not os.path.exists("dump/"+temp+"/")):
 			os.makedirs("dump/"+temp+"/")
 		plt.savefig("dump/"+ temp + "/"+name + '.png',transparent=True) 
+
 def readProportion(inputEmotions):
 	allData = readAllEmotions()	# could modify to only read the emotions that are needed
 	outdata = []
@@ -164,6 +165,8 @@ def readProportion(inputEmotions):
 	emotionLabels = {}
 	
 	for childEmotion in inputEmotions.iterkeys():
+		tempdata = [] 
+		templabels = []
 		# take first image in emotion folder
 		labelPath = pathData + childEmotion + "/"
 		labelImage = os.listdir(labelPath)[0]
@@ -188,35 +191,40 @@ def readProportion(inputEmotions):
 					maxdiff = diff
 					maxemotion = parentReaction	
 
-		print maxemotion," needs adjusting"	
+		#print maxemotion," needs adjusting"	
+
+		assert tempdata == []
+		assert templabels == []
 
 		for parentReaction in inputEmotions[childEmotion].iterkeys():
-			tempdata = [] 
-			templabels = []
+			#print "parentReaction", parentReaction
 			imageList = os.listdir(pathData + parentReaction)
 			emotionDatasize = len(imageList)
-			print "parentReaction", parentReaction
-			print "firstImage", imageList[0]
+			#print "parentReaction", parentReaction
+			#print "firstImage", imageList[0]
 			wantedEmotionSize = inputEmotions[childEmotion][parentReaction]  * emotionDatasize
 
+			print "For ",parentReaction," Size ", wantedEmotionSize
 			if(maxemotion != ""):
 				adjustedTotal = len(os.listdir(pathData + maxemotion)) / inputEmotions[childEmotion][maxemotion]
 				wantedEmotionSize = int(inputEmotions[childEmotion][parentReaction] * adjustedTotal)
 				assert wantedEmotionSize <= emotionDatasize
 
-			assert tempdata == []
-			assert templabels == []
+			#print "WA", wantedEmotionSize
 			for imageIndx in xrange(wantedEmotionSize): # attach (label, data) for all needed images
 				tempdata.append(parseImage(pathData + parentReaction + "/" + imageList[imageIndx]))
 				templabels.append(currentLabel)
 				#outdata.append(parseImage(pathData + parentReaction + "/" + imageList[imageIndx]))
 				#outlabels.append(currentLabel)									
 
-			outdata.append(tempdata)
-			outlabels.append(templabels)
+		outdata.append(tempdata)
+		outlabels.append(templabels)
+		print "childEmotion ",childEmotion,len(tempdata)
+
 	
 	# equalize size of data for each emotion
 	minsize = len(outdata[0])
+	#print "minsize",minsize
 	for dataset in outdata:
 		if len(dataset) < minsize:
 			minsize = len(dataset)
