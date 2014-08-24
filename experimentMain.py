@@ -26,6 +26,8 @@ def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 		# for each type of parent 
 
 		parentType = parentTypes[pType]
+		outparent = {}
+
 		print parentType
 		for key in parentType.iterkeys():
 			foo = {}
@@ -36,7 +38,6 @@ def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 				#print "parent Emo: ",parentEmotion
 				#print "prop: ",foo[parentEmotion]
 			childEmotionsConv[key] = foo
-			outparent = copy.copy(parentType)
 			outparent[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
 
 		#setup dyad parameters and run the singledyad a number of times
@@ -54,27 +55,34 @@ def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 		while nrTrials < maxTrials:
 			print "parent type ",pType
 			print "Trial",nrTrials
-			#trial = sd.run(childEmotionsConv, childEmotionalProportions, doComplexFlag)
-			trial = {"sadness":"anger", "happy":"sadness"}
-			time.sleep(0.01)
+			trial = sd.run(childEmotionsConv, childEmotionalProportions, doComplexFlag)
+			#trial = {"sadness":"anger", "happy":"sadness"}
+			#time.sleep(0.1)
 			print trial
 			for childEmotion in trial.iterkeys():
+				#print childEmotion
 				trialRecognitionVal = trial[childEmotion]
 				positionInRecogList = allEmotions[trialRecognitionVal]
 				#print outparent
 				#print type(outparent[childEmotion]) 
 				outparent[childEmotion][positionInRecogList] += 1
+			print outparent
 			nrTrials += 1.0
 			#if nrTrials >= maxTrials:
 			#	break
 			if nrTrials == maxTrials:# reset trial and outparent objects
 				print "ended configuration for "+str(nrTrials)+" trials on " + pType
 				endingtrial = 0.0
+				endingparent = {}
 				for k in outparent.iterkeys():
-					outparent[key] = [0,0,0,0,0,0,0]
+					print k
+					endingparent[k] = [0,0,0,0,0,0,0]
+				print "ENDING PARENT",endingparent
+				print endingtrial
+				
 				with open(pType, "wb") as f:
 					pickle.dump(endingtrial, f)
-					pickle.dump(outparent, f)
+					pickle.dump(endingparent, f)
 					#justStarting = False
 					f.close()
 			else:
@@ -84,11 +92,13 @@ def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 					#justStarting = False
 					f.close()
 
-	 
+	 	print "OUTPARENT",outparent
+	 	print nrTrials
 		outparent.update((x, [a / nrTrials for a in y]) for x, y in outparent.items())
 
 		emotionRecogRates[pType] = outparent
-
+		#print "OUTPARENT",outparent
+		#print "OUTPARENT",emotionRecogRates
 		# INTRODUCE RESUMABLABLE EXPERIMENT TRIAL
 
 	return emotionRecogRates, nrTrials, parentType
@@ -177,6 +187,8 @@ def main():
 
 	secure, avoid, ambiv = makeParentSpecs()
 	print "AMBIV", ambiv
+	print "AVOID", avoid
+	print "SECURE", secure
 
 	#childEmotions = {"happy": happySecure, "sadness": sadnessSecure}
 	childEmotionalProportions = {"happy": 0.4, "sadness": 0.6}
@@ -214,7 +226,7 @@ def main():
 
 			exp1,nrTrials, ptype = runExp1({"secureParent":config}, childEmotionalProportions,False)
 			#justStarting = False
-			f.write("Interaction results:asdfasdf \n")
+			f.write("Interaction results: \n")
 			f.write("Nr Trials: "+ str(nrTrials) + "\n")
 			f.write("Parent Type"+ str(ptype)+"\n")
 			for k,v in exp1.iteritems():

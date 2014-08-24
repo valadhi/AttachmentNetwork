@@ -1,9 +1,10 @@
 import os.path
 import numpy as np
-import cv2
+#import cv2
 import random,copy
 import matplotlib.pyplot as plt
 from common import *
+from PIL import Image
 
 #emotionArray = ["anger","contempt","disgust","fear","happy","sadness","surprise"]
 kanadeEmotions = {"anger":1, "contempt":2, "disgust":3, "fear":4, "happy":5, "sadness":6, "surprise":7}
@@ -19,18 +20,20 @@ pathData = "kanade/"+ str(sizeName) + "/"
 
 #parse images in array bit format
 def parseImage(path):
+	'''
 	img = cv2.imread(path, 0)
 	img = cv2.equalizeHist(img)
 	img = img.flatten()
 	return img.tolist()
-	'''img = Image.open(path)
+	'''
+	img = Image.open(path)
 	pixels = img.load()
 	array = []
 	for i in range(img.size[0]):
 		for j in range(img.size[1]):
 			(a,b,c,d) = pixels[i,j]
 			array.append((a+b+c)/3)    
-	return array'''
+	return array
 # reads the data for a single emotion
 def readEmotion(emo):
 	out = []

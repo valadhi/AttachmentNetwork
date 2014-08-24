@@ -8,7 +8,7 @@ import os, argparse
 from activationfunctions import *
 from sklearn import linear_model#,metrics
 import time
-import cv2
+#import cv2
 import matplotlib.image as io
 import copy
 
