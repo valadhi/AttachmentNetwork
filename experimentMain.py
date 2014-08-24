@@ -3,16 +3,21 @@ import DoubleDyad as dd
 import cPickle as pickle
 import os
 import itertools
+import time
+import copy
 #import numpy as np 
 #import csv
 
 parentEmotions = {0:"happy", 1:"anger", 2:"sadness"}#,3:"fear"}
 allEmotions = {"fear":0, "happy":1,"anger":2,"contempt":3,"disgust":4,"sadness":5,"surprise":6}
 
+
+##### parentType = {"sadness":[0.1,0.2,0.7], "happy":[0.3,0.4,0.3]}
 def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
+
 	nrTrials = 0.0
 	maxTrials = 100.0
-	justStarting = True
+	#justStarting = True
 
 	childEmotionsConv = {}
 	emotionRecogRates = {}
@@ -31,46 +36,62 @@ def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 				#print "parent Emo: ",parentEmotion
 				#print "prop: ",foo[parentEmotion]
 			childEmotionsConv[key] = foo
-			parentType[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
+			outparent = copy.copy(parentType)
+			outparent[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
 
 		#setup dyad parameters and run the singledyad a number of times
 		# to return percentages of classifications
 		
-		if os.path.isfile(pType) and justStarting:
+		if os.path.isfile(pType):
 			print "resuming..................."
 			f = open(pType, "rb")
 			nrTrials = pickle.load(f)
-			parentType = pickle.load(f)
+			outparent = pickle.load(f)
+			print nrTrials
+			print outparent
 			f.close()
 
-		while True:
+		while nrTrials < maxTrials:
 			print "parent type ",pType
 			print "Trial",nrTrials
-			trial = sd.run(childEmotionsConv, childEmotionalProportions, doComplexFlag)
+			#trial = sd.run(childEmotionsConv, childEmotionalProportions, doComplexFlag)
+			trial = {"sadness":"anger", "happy":"sadness"}
+			time.sleep(0.01)
 			print trial
 			for childEmotion in trial.iterkeys():
 				trialRecognitionVal = trial[childEmotion]
 				positionInRecogList = allEmotions[trialRecognitionVal]
-				#print parentType
-				#print type(parentType[childEmotion]) 
-				parentType[childEmotion][positionInRecogList] += 1
+				#print outparent
+				#print type(outparent[childEmotion]) 
+				outparent[childEmotion][positionInRecogList] += 1
 			nrTrials += 1.0
-			if nrTrials >= maxTrials:
-				break
-			with open(pType, "wb") as f:
-				pickle.dump(nrTrials, f)
-				pickle.dump(parentType, f)
-				justStarting = False
-				f.close()
+			#if nrTrials >= maxTrials:
+			#	break
+			if nrTrials == maxTrials:# reset trial and outparent objects
+				print "ended configuration for "+str(nrTrials)+" trials on " + pType
+				endingtrial = 0.0
+				for k in outparent.iterkeys():
+					outparent[key] = [0,0,0,0,0,0,0]
+				with open(pType, "wb") as f:
+					pickle.dump(endingtrial, f)
+					pickle.dump(outparent, f)
+					#justStarting = False
+					f.close()
+			else:
+				with open(pType, "wb") as f:
+					pickle.dump(nrTrials, f)
+					pickle.dump(outparent, f)
+					#justStarting = False
+					f.close()
 
 	 
-		parentType.update((x, [a / nrTrials for a in y]) for x, y in parentType.items())
+		outparent.update((x, [a / nrTrials for a in y]) for x, y in outparent.items())
 
-		emotionRecogRates[pType] = parentType
+		emotionRecogRates[pType] = outparent
 
 		# INTRODUCE RESUMABLABLE EXPERIMENT TRIAL
 
-	return emotionRecogRates
+	return emotionRecogRates, nrTrials, parentType
 
 
 def runExp2(parent1, parent2, childEmotionalProportions, parentPercentages):
@@ -165,20 +186,20 @@ def main():
 		writer = csv.writer(csvfile)
 		[writer.writerow(r) for r in secureParent.itervalues()]
 	'''
-	'''
+	
 	with open("experiment10Trial.txt", "a") as f:
 
 		f.write("SECURE PARENT\n")
 		f.write("######################################################\n")
-		resume = -1
-		if os.path.isfile("secure") and justStarting:
+		resume = 0
+		if os.path.isfile("secure"):
 			fich = open("secure", "rb")
 			resume = pickle.load(fich)
-			print "resuming...................", resume
+			print "resuming..................."+str(resume)+" out of "+str(len(secure))
 			#parentType = pickle.load(fich)
 			fich.close()
 
-		for indx in xrange(resume+1, len(secure)):
+		for indx in xrange(resume, len(secure)):
 			config = secure[indx]
 			print "Current Config: ", config
 			f.write("Parent Responses: \n")
@@ -191,9 +212,11 @@ def main():
 			
 			#f.write(str(config)+"\n")
 
-			exp1 = runExp1({"secureParent":config}, childEmotionalProportions,False)
+			exp1,nrTrials, ptype = runExp1({"secureParent":config}, childEmotionalProportions,False)
 			#justStarting = False
-			f.write("Interaction results: \n")
+			f.write("Interaction results:asdfasdf \n")
+			f.write("Nr Trials: "+ str(nrTrials) + "\n")
+			f.write("Parent Type"+ str(ptype)+"\n")
 			for k,v in exp1.iteritems():
 				#f.write("To "+ k +"\t")
 				for j,k in v.iteritems():
@@ -209,24 +232,23 @@ def main():
 			f.write("\n\n")
 
 			with open("secure", "wb") as fich:
-				pickle.dump(indx, fich)
+				pickle.dump(indx+1, fich)
 				#pickle.dump(parentType, fich)
-				justStarting = False
+				#justStarting = False
 				fich.close()
 
 	with open("experiment10Trial.txt", "a") as f:
 		f.write("AMBIVALENT PARENT\n")
 		f.write("######################################################\n")
-		resume = -1
-		justStarting = True
-		if os.path.isfile("ambivalent") and justStarting:
+		resume = 0
+		if os.path.isfile("ambivalent"):
 			fich = open("ambivalent", "rb")
 			resume = pickle.load(fich)
-			print "resuming...................", resume
+			print "resuming..................."+str(resume)+" out of "+str(len(ambiv))
 			#parentType = pickle.load(fich)
 			fich.close()
 
-		for indx in xrange(resume+1, len(ambiv)):
+		for indx in xrange(resume, len(ambiv)):
 			config = ambiv[indx]
 			print "Current Config: ", config
 			f.write("Parent Responses: \n")
@@ -242,8 +264,13 @@ def main():
 			
 			#f.write(str(config)+"\n")
 
-			exp2 = runExp1({"ambivalentParent":config}, childEmotionalProportions,False)
+			exp2,nrTrials, ptype = runExp1({"ambivalentParent":config}, childEmotionalProportions,False)
+			
+			#justStarting = False
 			f.write("Interaction results: \n")
+			f.write("Nr Trials: "+ str(nrTrials) + "\n")
+			f.write("Parent Type"+ str(ptype)+"\n")
+
 			for k,v in exp2.iteritems():
 				#f.write("To "+ k +"\t")
 				for j,k in v.iteritems():
@@ -258,25 +285,23 @@ def main():
 			#f.write(str(exp2)+"\n\n")
 			f.write("\n\n")
 			with open("ambivalent", "wb") as fich:
-				pickle.dump(indx, fich)
+				pickle.dump(indx+1, fich)
 				#pickle.dump(parentType, fich)
-				justStarting = False
 				fich.close()
 
 	with open("experiment10Trial.txt", "a") as f:
 		f.write("AVOIDANT PARENT\n")
 		f.write("######################################################\n")
 
-		resume = -1
-		justStarting = True
-		if os.path.isfile("avoidant") and justStarting:
+		resume = 0
+		if os.path.isfile("avoidant"):
 			fich = open("avoidant", "rb")
 			resume = pickle.load(fich)
-			print "resuming...................", resume
+			print "resuming..................."+str(resume)+" out of "+str(len(avoid))
 			#parentType = pickle.load(fich)
 			fich.close()
 
-		for indx in xrange(resume+1, len(avoid)):
+		for indx in xrange(resume, len(avoid)):
 			config = avoid[indx]
 			print "Current Config: ", config
 			f.write("Parent Responses: \n")
@@ -289,9 +314,11 @@ def main():
 			
 			#f.write(str(secureParent)+"\n")
 
-			exp3 = runExp1({"avoidantParent":config}, childEmotionalProportions,False)
-
+			exp3,nrTrials, ptype = runExp1({"avoidantParent":config}, childEmotionalProportions,False)
+			#justStarting = False
 			f.write("Interaction results: \n")
+			f.write("Nr Trials: "+ str(nrTrials) + "\n")
+			f.write("Parent Type"+ str(ptype)+"\n")
 			for k,v in exp3.iteritems():
 				#f.write("To "+ k +"\t")
 				for j,k in v.iteritems():
@@ -306,16 +333,16 @@ def main():
 			#f.write(str(exp3)+"\n\n")
 			f.write("\n\n")
 			with open("avoidant", "wb") as fich:
-				pickle.dump(indx, fich)
+				print "###################",str(indx+1)
+				pickle.dump(indx+1, fich)
 				#pickle.dump(parentType, fich)
-				justStarting = False
 				fich.close()
-	'''
+	
 	#print runExp1({"secureParent":secureParent}, childEmotionalProportions)
 	#print runExp1({"ambivalentParent":ambivalentParent}, childEmotionalProportions)
 	#print runExp1({"avoidantParent":avoidantParent}, childEmotionalProportions)
 
-	print runExp2(secureParent, ambivalentParent, {}, [0.6, 0.4])
+	#print runExp2(secureParent, ambivalentParent, {}, [0.6, 0.4])
 
 if __name__ == '__main__':
 	main()
