@@ -82,7 +82,7 @@ def readAllEmotionssk():
   	data = []
   	labels = []
   	emotions = ["fear", "happy","anger","contempt","disgust","sadness","surprise"]
-  	emotionsdct = {"fear":1, "happy":2,"anger":3,"contempt":4,"disgust":5,"sadness":6,"surprise":7}
+  	emotionsdct = {"fear":0, "happy":1,"anger":2,"contempt":3,"disgust":4,"sadness":5,"surprise":6}
 	for emote in emotions:
 		path = pathData + emote + "/"
 		#labels[emote] = genLabel(emote)
@@ -174,6 +174,7 @@ def readProportion(inputEmotions):
 		emotionLabels[childEmotion] = np.array(currentLabel) / 255.0
 
 		sumofemotions = 0
+		print "############parenaente", inputEmotions[childEmotion]
 		for parentReaction in inputEmotions[childEmotion].iterkeys():
 			sumofemotions += len(os.listdir(pathData + parentReaction))
 

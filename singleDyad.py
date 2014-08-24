@@ -109,7 +109,7 @@ def buildParent(inputEmotions): # trains network with emotional associations
 	return parentNet, childLabelList
 
 # returns emotion dictionary of {"emotion" : ndarray of resulting image}
-def interactChild(pNet, childDataSetOfEmotions, complexFlag):
+def interactChild(pNet, childDataSetOfEmotions, doComplexFlag):
 	outputEmotions = copy.copy(childDataSetOfEmotions)
 	# 1. feed the child emotions into parent
 	sizeOfParentFeedback = 20
@@ -131,7 +131,7 @@ def interactChild(pNet, childDataSetOfEmotions, complexFlag):
 		saveImage(recon, key,(size[0]*2,size[1]), "parentchildoutput")
 		outputEmotions[key] = recon[:,:size[0]**2]
 
-	if not complexFlag:
+	if not doComplexFlag:
 		return outputEmotions
 	else: 
 		'''
@@ -250,7 +250,7 @@ def scikitclassifier():
 	return logistic_classifier
 
 def emoEval(classifier, emotions):
-	emotionsdct = {1:"fear", 2:"happy",3:"anger",4:"contempt",5:"disgust",6:"sadness",7:"surprise"}
+	emotionsdct = {0:"fear", 1:"happy",2:"anger",3:"contempt",4:"disgust",5:"sadness",6:"surprise"}
 	results = {}
 	for emote in emotions.iterkeys():	
 		emotion = emotions[emote]
@@ -280,7 +280,7 @@ def saveImage(data, name, size,temp=""):
 		plt.savefig("dump/"+ temp + "/"+name + '.png',transparent=True)
 		#io.imsave("dump/"+ temp + "/"+name + '.png', data, cmap=plt.cm.gray) 
 
-def run(childEmotions, childEmotionalProportions):
+def run(childEmotions, childEmotionalProportions, doComplexFlag):
 
 	net,childLabels = buildParent(childEmotions)
 	'''
@@ -288,7 +288,7 @@ def run(childEmotions, childEmotionalProportions):
 		emotion = childLabels[key]
 		saveImage(emotion, key+"ceprimim",(25,25), "parentchildoutput")
 	'''
-	emotionResponses = interactChild(net, childLabels, complexFlag = True)
+	emotionResponses = interactChild(net, childLabels, doComplexFlag)
 	#emoClassifier, emoLabels = trainEmotionClassifier()
 
 	outputs = emoEval(scikitclassifier(), emotionResponses)
@@ -305,4 +305,4 @@ def main():
 if __name__ == '__main__':
 	main()
 '''
-run({"happy" :{"happy": 0.2, "surprise":0.8},"sadness" : {"sadness":0.9,"anger":0.2}}, {})
+#run({"happy" :{"happy": 0.2, "surprise":0.8},"sadness" : {"sadness":0.9,"anger":0.2}}, {})
