@@ -1,0 +1,202 @@
+SECURE PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.9 anger: 0.0 sadness: 0.1 
+To happy	happy: 0.8 anger: 0.1 sadness: 0.1 
+
+SECURE PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.9 anger: 0.0 sadness: 0.1 
+To happy	happy: 0.8 anger: 0.1 sadness: 0.1 
+
+SECURE PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.9 anger: 0.0 sadness: 0.1 
+To happy	happy: 0.8 anger: 0.1 sadness: 0.1 
+
+SECURE PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.9 anger: 0.0 sadness: 0.1 
+To happy	happy: 0.8 anger: 0.1 sadness: 0.1 
+
+Interaction results: 
+Nr Trials: 100.0
+Parent Type{'sadness': [0.9, 0.0, 0.1], 'happy': [0.8, 0.1, 0.1]}
+sadness: 
+fear: 0.0  happy: 1.0  anger: 0.0  contempt: 0.0  disgust: 0.0  sadness: 0.0  surprise: 0.0  
+happy: 
+fear: 0.0  happy: 1.0  anger: 0.0  contempt: 0.0  disgust: 0.0  sadness: 0.0  surprise: 0.0  
+
+
+
+Parent Responses: 
+To sadness	happy: 0.9 anger: 0.1 sadness: 0.0 
+To happy	happy: 0.8 anger: 0.1 sadness: 0.1 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.5 anger: 0.3 sadness: 0.2 
+To happy	happy: 0.5 anger: 0.2 sadness: 0.3 
+
+SECURE PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.7 anger: 0.2 sadness: 0.1 
+To happy	happy: 0.7 anger: 0.1 sadness: 0.2 
+
+SECURE PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.7 anger: 0.2 sadness: 0.1 
+To happy	happy: 0.7 anger: 0.1 sadness: 0.2 
+
+Interaction results: 
+Nr Trials: 100.0
+Parent Type{'sadness': [0.7, 0.2, 0.1], 'happy': [0.7, 0.1, 0.2]}
+sadness: 
+fear: 0.0  happy: 1.0  anger: 0.0  contempt: 0.0  disgust: 0.0  sadness: 0.0  surprise: 0.0  
+happy: 
+fear: 0.0  happy: 1.0  anger: 0.0  contempt: 0.0  disgust: 0.0  sadness: 0.0  surprise: 0.0  
+
+
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.5 anger: 0.3 sadness: 0.2 
+To happy	happy: 0.5 anger: 0.2 sadness: 0.3 
+
+SECURE PARENT
+######################################################
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.4 anger: 0.1 sadness: 0.4 
+To happy	happy: 0.4 anger: 0.4 sadness: 0.1 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.4 anger: 0.1 sadness: 0.4 
+To happy	happy: 0.4 anger: 0.4 sadness: 0.1 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.4 anger: 0.1 sadness: 0.4 
+To happy	happy: 0.4 anger: 0.4 sadness: 0.1 
+
+Interaction results: 
+Nr Trials: 100.0
+Parent Type{'sadness': [0.4, 0.1, 0.4], 'happy': [0.4, 0.4, 0.1]}
+sadness: 
+fear: 0.0  happy: 0.25  anger: 0.05  contempt: 0.0  disgust: 0.0  sadness: 0.7  surprise: 0.0  
+happy: 
+fear: 0.0  happy: 0.15  anger: 0.85  contempt: 0.0  disgust: 0.0  sadness: 0.0  surprise: 0.0  
+
+
+
+Parent Responses: 
+To sadness	happy: 0.5 anger: 0.2 sadness: 0.3 
+To happy	happy: 0.6 anger: 0.2 sadness: 0.2 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.5 anger: 0.2 sadness: 0.3 
+To happy	happy: 0.6 anger: 0.2 sadness: 0.2 
+
+Interaction results: 
+Nr Trials: 100.0
+Parent Type{'sadness': [0.5, 0.2, 0.3], 'happy': [0.6, 0.2, 0.2]}
+sadness: 
+fear: 0.0  happy: 0.04  anger: 0.66  contempt: 0.0  disgust: 0.0  sadness: 0.3  surprise: 0.0  
+happy: 
+fear: 0.0  happy: 1.0  anger: 0.0  contempt: 0.0  disgust: 0.0  sadness: 0.0  surprise: 0.0  
+
+
+
+AVOIDANT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.4 anger: 0.2 sadness: 0.4 
+To happy	happy: 0.4 anger: 0.3 sadness: 0.3 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+AVOIDANT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.4 anger: 0.2 sadness: 0.4 
+To happy	happy: 0.4 anger: 0.3 sadness: 0.3 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+AVOIDANT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.4 anger: 0.2 sadness: 0.4 
+To happy	happy: 0.4 anger: 0.3 sadness: 0.3 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+AVOIDANT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.2 anger: 0.3 sadness: 0.5 
+To happy	happy: 0.3 anger: 0.4 sadness: 0.3 
+
+Interaction results: 
+Nr Trials: 100.0
+Parent Type{'sadness': [0.2, 0.3, 0.5], 'happy': [0.3, 0.4, 0.3]}
+sadness: 
+fear: 0.0  happy: 0.0  anger: 0.21  contempt: 0.0  disgust: 0.0  sadness: 0.79  surprise: 0.0  
+happy: 
+fear: 0.0  happy: 0.0  anger: 0.92  contempt: 0.0  disgust: 0.0  sadness: 0.08  surprise: 0.0  
+
+
+
+Parent Responses: 
+To sadness	happy: 0.3 anger: 0.1 sadness: 0.4 
+To happy	happy: 0.3 anger: 0.2 sadness: 0.5 
+
+SECURE PARENT
+######################################################
+AMBIVALENT PARENT
+######################################################
+AVOIDANT PARENT
+######################################################
+Parent Responses: 
+To sadness	happy: 0.3 anger: 0.1 sadness: 0.4 
+To happy	happy: 0.3 anger: 0.2 sadness: 0.5 
+
