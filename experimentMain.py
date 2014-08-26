@@ -111,7 +111,7 @@ def runExp2(parent1, parent2, childEmotionalProportions, parentPercentages, resu
 	childEmotionProp = {}
 	parentReactionProp = {}
 	nrTrials = 0.0
-	maxTrials = 100.0
+	maxTrials = 80.0
 	#justStarting = True
 	outparent = {}
 
@@ -325,7 +325,7 @@ def main():
 		writer = csv.writer(csvfile)
 		[writer.writerow(r) for r in secureParent.itervalues()]
 	'''
-	
+	'''
 	with open("experiment10Trial.txt", "a") as f:
 
 		f.write("SECURE PARENT\n")
@@ -482,6 +482,7 @@ def main():
 	#print runExp1({"avoidantParent":avoidantParent}, childEmotionalProportions)
 	
 	'''
+	'''
 	resume = 0
 	if os.path.isfile("doubleDyad"):
 		fich = open("doubleDyad", "rb")
@@ -509,8 +510,8 @@ def main():
 			#pickle.dump(parentType, fich)
 			fich.close()
 	'''
-	#secureParent = {"happy":[0.9,0.0,0.1], "sadness":[0.9,0.0, 0.1]}#,"anger":[0.0,0.9,0.0,0.1,0.0]}
-	#ambivalentParent = {"happy":[0.1,0.9,0.0], "sadness":[0.1, 0.9, 0.0]}#, "anger":[]}
-	#print runExp2(secureParent, ambivalentParent, {}, [0.5, 0.5],"secureambivalent")
+	secureParent = {"happy":[0.9,0.0,0.1], "sadness":[0.0,0.1, 0.9]}#,"anger":[0.0,0.9,0.0,0.1,0.0]}
+	ambivalentParent = {"happy":[0.9,0.0,0.1], "sadness":[0.0, 0.1, 0.9]}#, "anger":[]}
+	print runExp2(secureParent, ambivalentParent, {}, [0.5, 0.5],"secureambivalent")
 if __name__ == '__main__':
 	main()

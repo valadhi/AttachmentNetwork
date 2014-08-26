@@ -100,7 +100,7 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 			recon = pNet1.reconstruct(recon,3)
 			if parentResponses.size == 0:
 				parentResponses = recon
-				#saveImage(recon, key+"anexample",(size[0]*2,size[1]), "parentchildoutput")
+				saveImage(recon, key+"anexample",(size[0]*2,size[1]), "parentchildoutput")
 			else:
 				parentResponses = np.vstack((parentResponses, recon))
 				#saveImage(recon, key+"anexample"+str(s),(size[0]*2,size[1]), "parentchildoutput")
@@ -115,6 +115,7 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 			recon = pNet2.reconstruct(recon,3)
 			if parentResponses.size == 0:
 				parentResponses = recon
+				saveImage(recon, key+"anexample",(size[0]*2,size[1]), "parentchildoutput")
 			else:
 				parentResponses = np.vstack((parentResponses, recon))		
 
@@ -136,7 +137,7 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 					nesterov=True,#args.rbmnesterov,
 					sparsityConstraint=False,#args.sparsity,
 					sparsityRegularization=0.5,
-					trainingEpochs=70,#args.maxEpochs,
+					trainingEpochs=23,#args.maxEpochs,
 					sparsityTraget=0.01,
 					fixedLabel = True)
 
