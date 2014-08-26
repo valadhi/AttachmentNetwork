@@ -84,7 +84,8 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 		outputEmotions[key] = recon[:,:size[0]**2]
 	'''
 	for key in childDataSetOfEmotions.iterkeys():
-		for s in xrange(parentPercentages[0]*sizeOfParentFeedback):
+		rnge = int(parentPercentages[0]*sizeOfParentFeedback)
+		for s in xrange(rnge):
 			emotion = childDataSetOfEmotions[key]
 			#print "emotion ",emotion
 			#print "emotion ",emotion.shape
@@ -96,7 +97,7 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 			recon = np.concatenate((rando, emotion), axis=1)
 			#print "recon shape ",recon.shape
 			#print "type ",recon[0,1],type(recon[0,1])
-			recon = pNet1.reconstruct(recon,300)
+			recon = pNet1.reconstruct(recon,3)
 			if parentResponses.size == 0:
 				parentResponses = recon
 				#saveImage(recon, key+"anexample",(size[0]*2,size[1]), "parentchildoutput")
@@ -105,12 +106,13 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 				#saveImage(recon, key+"anexample"+str(s),(size[0]*2,size[1]), "parentchildoutput")
 
 	for key in childDataSetOfEmotions.iterkeys():
-		for s in xrange(parentPercentages[1]*sizeOfParentFeedback):
+		rnge = int(parentPercentages[1]*sizeOfParentFeedback)
+		for s in xrange(rnge):
 			emotion = childDataSetOfEmotions[key]
 			saveImage(emotion, key+"EMOTION2",(size[0],size[1]), "testemo")
 			emotion = emotion.reshape(1, emotion.shape[0])
 			recon = np.concatenate((rando, emotion), axis=1)
-			recon = pNet2.reconstruct(recon,300)
+			recon = pNet2.reconstruct(recon,3)
 			if parentResponses.size == 0:
 				parentResponses = recon
 			else:
@@ -127,7 +129,7 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 	print "visible1 ",nrVisible
 	print "data row1 ",parentResponses[0,:].shape 
 
-	childNet = rbm.RBM(nrVisible, nrHidden, 0.01, 0.8, 0.8,
+	childNet = rbm.RBM(nrVisible, nrHidden, 0.01, 0.9, 0.9,
 					visibleActivationFunction=activationFunction,
 					hiddenActivationFunction=activationFunction,
 					rmsprop=True,#args.rbmrmsprop,
@@ -156,7 +158,7 @@ def interactChild(pNet1, pNet2, childDataSetOfEmotions, parentPercentages):
 		print "recon shape ",recon.shape
 		recon = childNet.reconstruct(recon,3)
 		outputEmotions[key] = recon[:,:size[0]**2]# first half is reconstructed bit
-		saveImage(recon, key+"afterParent1",(size[0]*2,size[1]), "parentchildoutput")
+		saveImage(recon[:,:size[0]**2], key+"afterParent1",(size[0],size[1]), "parentchildoutput")
 	
 	# 3. classify the resulting emotion
 	return outputEmotions
@@ -184,7 +186,7 @@ def scikitclassifier():
 	return logistic_classifier
 
 def emoEval(classifier, emotions):
-	emotionsdct = {1:"fear", 2:"happy",3:"anger",4:"contempt",5:"disgust",6:"sadness",7:"surprise"}
+	emotionsdct = {0:"fear", 1:"happy",2:"anger",3:"contempt",4:"disgust",5:"sadness",6:"surprise"}
 	results = {}
 	for emote in emotions.iterkeys():	
 		emotion = emotions[emote]
@@ -215,19 +217,17 @@ def saveImage(data, name, size,temp=""):
 		#io.imsave("dump/"+ temp + "/"+name + '.png', data, cmap=plt.cm.gray) 
 
 def run(parent1, parent2, childEmotionalProportions, parentPercentages):
-
-
 	pNet1,childLabels1 = buildParent(parent1)
 	pNet2,childLabels2 = buildParent(parent2)
-	
+	'''
 	for key in childLabels1.iterkeys():
 		emotion = childLabels1[key]
 		saveImage(emotion, key+"LABELS1",size, "parentchildoutput")
 	for key in childLabels2.iterkeys():
 		emotion = childLabels2[key]
 		saveImage(emotion, key+"LABELS2",size, "parentchildoutput")
-	
-	emotionResponses = interactChild(pNet1, pnet1, childLabels1, parentPercentages)
+	'''
+	emotionResponses = interactChild(pNet1, pNet1, childLabels1, parentPercentages)
 	#emoClassifier, emoLabels = trainEmotionClassifier()
 
 	outputs = emoEval(scikitclassifier(), emotionResponses)

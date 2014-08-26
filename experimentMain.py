@@ -16,7 +16,7 @@ allEmotions = {"fear":0, "happy":1,"anger":2,"contempt":3,"disgust":4,"sadness":
 def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 
 	nrTrials = 0.0
-	maxTrials = 100.0
+	maxTrials = 80.0
 	#justStarting = True
 
 	childEmotionsConv = {}
@@ -104,13 +104,19 @@ def runExp1(parentTypes, childEmotionalProportions,doComplexFlag):
 	return emotionRecogRates, nrTrials, parentType
 
 
-def runExp2(parent1, parent2, childEmotionalProportions, parentPercentages):
+def runExp2(parent1, parent2, childEmotionalProportions, parentPercentages, resumeFile):
 	childEmotionsConv1 = {}
 	childEmotionsConv2= {}
 	childEmotions = []
 	childEmotionProp = {}
 	parentReactionProp = {}
+	nrTrials = 0.0
+	maxTrials = 100.0
+	#justStarting = True
+	outparent = {}
 
+	childEmotionsConv = {}
+	emotionRecogRates = {}
 	for key in parent1.iterkeys():
 			foo = {}
 			#print key
@@ -120,7 +126,7 @@ def runExp2(parent1, parent2, childEmotionalProportions, parentPercentages):
 				#print "parent Emo: ",parentEmotion
 				#print "prop: ",foo[parentEmotion]
 			childEmotionsConv1[key] = foo
-			parent1[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
+			outparent[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
 
 	for key in parent2.iterkeys():
 			foo = {}
@@ -131,10 +137,69 @@ def runExp2(parent1, parent2, childEmotionalProportions, parentPercentages):
 				#print "parent Emo: ",parentEmotion
 				#print "prop: ",foo[parentEmotion]
 			childEmotionsConv2[key] = foo
-			parent2[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
+			#parent2[key] = [0,0,0,0,0,0,0] # assign an empty counter for each child emotion in parent type
 
 
-	dd.run(childEmotionsConv1, childEmotionsConv2, {}, parentPercentages)
+	#dd.run(childEmotionsConv1, childEmotionsConv2, {}, parentPercentages)
+	if os.path.isfile(resumeFile):
+			print "resuming..................."
+			f = open(resumeFile, "rb")
+			nrTrials = pickle.load(f)
+			outparent = pickle.load(f)
+			print nrTrials
+			print outparent
+			f.close()
+
+	while nrTrials < maxTrials:
+		print "parent type ",resumeFile
+		print "Trial",nrTrials
+		trial = dd.run(childEmotionsConv1, childEmotionsConv2, {}, parentPercentages)
+		#trial = {"sadness":"anger", "happy":"sadness"}
+		#time.sleep(0.1)
+		print trial
+		for childEmotion in trial.iterkeys():
+			print childEmotion
+			trialRecognitionVal = trial[childEmotion]
+			positionInRecogList = allEmotions[trialRecognitionVal]
+			print positionInRecogList
+			print type(outparent[childEmotion]) 
+			outparent[childEmotion][positionInRecogList] += 1
+		print outparent
+		nrTrials += 1.0
+		#if nrTrials >= maxTrials:
+		#	break
+		if nrTrials == maxTrials:# reset trial and outparent objects
+			print "ended configuration for "+str(nrTrials)+" trials on " + resumeFile
+			endingtrial = 0.0
+			endingparent = {}
+			for k in outparent.iterkeys():
+				print k
+				endingparent[k] = [0,0,0,0,0,0,0]
+			print "ENDING PARENT",endingparent
+			print endingtrial
+			
+			with open(resumeFile, "wb") as f:
+				pickle.dump(endingtrial, f)
+				pickle.dump(endingparent, f)
+				#justStarting = False
+				f.close()
+		else:
+			with open(resumeFile, "wb") as f:
+				pickle.dump(nrTrials, f)
+				pickle.dump(outparent, f)
+				#justStarting = False
+				f.close()
+
+ 	print "OUTPARENT",outparent
+ 	print nrTrials
+	outparent.update((x, [a / nrTrials for a in y]) for x, y in outparent.items())
+
+	emotionRecogRates[resumeFile] = outparent
+	#print "OUTPARENT",outparent
+	#print "OUTPARENT",emotionRecogRates
+	# INTRODUCE RESUMABLABLE EXPERIMENT TRIAL
+
+	return emotionRecogRates, nrTrials, resumeFile
 
 def makeParentSpecs():
 	def frange(x, y, jump):
@@ -175,6 +240,64 @@ def makeParentSpecs():
 
 	return finaloutlist[0], finaloutlist[1], finaloutlist[2]
 
+def parseExp2(parent1, parent2, childEmotionalProportions, parentPercentages, resumeFileName):
+	with open("experimentDoubleDyad.txt", "a") as f:
+		f.write(resumeFileName + " DYAD\n")
+		f.write("######################################################\n")
+		'''
+		resume = 0
+		if os.path.isfile(resumeFileName):
+			fich = open(resumeFileName, "rb")
+			resume = pickle.load(fich)
+			print "resuming..................."+str(resume)+" out of "+str(len(avoid))
+			#parentType = pickle.load(fich)
+			fich.close()
+		'''
+
+		f.write("Parent 1: "+str(parentPercentages[0])+"\n")
+		for k,v in parent1.iteritems():
+			f.write("To "+ k +"\t")
+			for i in xrange(len(v)):
+				f.write(parentEmotions[i]+": "+ str(v[i]) + " ")
+			f.write("\n")
+		f.write("\n")
+		f.write("Parent 2:"+str(parentPercentages[1])+" \n")
+		for k,v in parent2.iteritems():
+			f.write("To "+ k +"\t")
+			for i in xrange(len(v)):
+				f.write(parentEmotions[i]+": "+ str(v[i]) + " ")
+			f.write("\n")
+		f.write("\n")
+		
+		#f.write(str(secureParent)+"\n")
+
+		#exp3,nrTrials, ptype = runExp1({"avoidantParent":config}, childEmotionalProportions,False)
+		exp3,nrTrials, ptype = runExp2(parent1, parent2, childEmotionalProportions, parentPercentages, resumeFileName)
+		#justStarting = False
+		f.write("Interaction results: \n")
+		f.write("Nr Trials: "+ str(nrTrials) + " Percentages: " +str(parentPercentages) +"\n")
+		f.write("Parent Type "+ ptype+"\n")
+		for k,v in exp3.iteritems():
+			#f.write("To "+ k +"\t")
+			for j,k in v.iteritems():
+				f.write(j+": ")
+				f.write("\n")
+				for x in xrange(len(k)):
+					for key, val in allEmotions.iteritems():
+						if val == x:
+							f.write(key+": "+str(k[x])+"  ")
+				f.write("\n")
+		f.write("\n")
+		#f.write(str(exp3)+"\n\n")
+		f.write("\n\n")
+		'''
+		with open(resumeFileName, "wb") as fich:
+			print "###################",str(indx+1)
+			pickle.dump(indx+1, fich)
+			#pickle.dump(parentType, fich)
+			fich.close()
+		'''
+
 def main():
 	justStarting = True
 	# parent emotions
@@ -184,11 +307,15 @@ def main():
 	#secureParent = {"happy":[0.1,0.0,0.9], "sadness":[0.9,0.1, 0.0]}#,"anger":[0.0,0.9,0.0,0.1,0.0]}
 	#ambivalentParent = {"happy":[0.4,0.4,0.1], "sadness":[0.3, 0.4, 0.2]}#, "anger":[]}
 	#avoidantParent = {"happy":[0.1, 0.4, 0.4], "sadness":[0.1, 0.5, 0.3]}#, "anger":[]}
-
+	'''
 	secure, avoid, ambiv = makeParentSpecs()
 	print "AMBIV", ambiv
 	print "AVOID", avoid
 	print "SECURE", secure
+	'''
+	ambiv = [{"happy":[0.5,0.2,0.3], "sadness":[0.5,0.3,0.2]}, {"happy":[0.4,0.4,0.1], "sadness":[0.4,0.1,0.4]},{"happy":[0.6,0.2,0.2], "sadness":[0.5,0.2,0.3]}]
+	avoid = [{"happy":[0.4,0.3,0.3], "sadness":[0.4,0.2,0.4]},{"happy":[0.3,0.4,0.3], "sadness":[0.2,0.3,0.5]},{"happy":[0.3,0.2,0.5], "sadness":[0.3,0.1,0.4]}]
+	secure = [{"happy":[0.9,0.0,0.1], "sadness":[0.8,0.1, 0.1]},{"happy":[0.7,0.1,0.2], "sadness":[0.7,0.2,0.1]}]
 
 	#childEmotions = {"happy": happySecure, "sadness": sadnessSecure}
 	childEmotionalProportions = {"happy": 0.4, "sadness": 0.6}
@@ -353,8 +480,37 @@ def main():
 	#print runExp1({"secureParent":secureParent}, childEmotionalProportions)
 	#print runExp1({"ambivalentParent":ambivalentParent}, childEmotionalProportions)
 	#print runExp1({"avoidantParent":avoidantParent}, childEmotionalProportions)
+	
+	'''
+	resume = 0
+	if os.path.isfile("doubleDyad"):
+		fich = open("doubleDyad", "rb")
+		resume = pickle.load(fich)
+		print "resuming..................."+str(resume)+" out of "+str(len(avoid))
+		#parentType = pickle.load(fich)
+		fich.close()
+	secureParent = {"happy":[0.8,0.1,0.1], "sadness":[0.8,0.1, 0.1]}#,"anger":[0.0,0.9,0.0,0.1,0.0]}
+	ambivalentParent = {"happy":[0.5,0.2,0.3], "sadness":[0.5, 0.2, 0.3]}#, "anger":[]}
+	avoidantParent = {"happy":[0.3,0.5,0.2], "sadness":[0.3, 0.5, 0.2]}
+	testinput = [[secureParent,ambivalentParent,[0.6,0.4],"secureambivalent"]]
+	testinput.append([secureParent,avoidantParent,[0.6,0.4],"secureavoidant"])
+	testinput.append([ambivalentParent,avoidantParent,[0.6,0.4],"ambivalentavoidant"])
+	testinput.append([secureParent,ambivalentParent,[0.4,0.6],"secureambivalent"])
+	testinput.append([secureParent,avoidantParent,[0.4,0.6],"secureavoidant"])
+	testinput.append([ambivalentParent,avoidantParent,[0.4,0.6],"ambivalentavoidant"])
 
-	#print runExp2(secureParent, ambivalentParent, {}, [0.6, 0.4])
+	for indx in xrange(resume, len(testinput)):
+		testdata = testinput[indx]
+		parseExp2(testdata[0], testdata[1], {}, testdata[2], resumeFileName = testdata[3])
 
+		with open("doubleDyad", "wb") as fich:
+			print "###################",str(indx+1)
+			pickle.dump(indx+1, fich)
+			#pickle.dump(parentType, fich)
+			fich.close()
+	'''
+	#secureParent = {"happy":[0.9,0.0,0.1], "sadness":[0.9,0.0, 0.1]}#,"anger":[0.0,0.9,0.0,0.1,0.0]}
+	#ambivalentParent = {"happy":[0.1,0.9,0.0], "sadness":[0.1, 0.9, 0.0]}#, "anger":[]}
+	#print runExp2(secureParent, ambivalentParent, {}, [0.5, 0.5],"secureambivalent")
 if __name__ == '__main__':
 	main()

@@ -1,6 +1,6 @@
 import os.path
 import numpy as np
-#import cv2
+import cv2
 import random,copy
 import matplotlib.pyplot as plt
 from common import *
@@ -20,7 +20,7 @@ pathData = "kanade/"+ str(sizeName) + "/"
 
 #parse images in array bit format
 def parseImage(path):
-	'''
+	
 	img = cv2.imread(path, 0)
 	img = cv2.equalizeHist(img)
 	img = img.flatten()
@@ -34,6 +34,7 @@ def parseImage(path):
 			(a,b,c,d) = pixels[i,j]
 			array.append((a+b+c)/3)    
 	return array
+	'''
 # reads the data for a single emotion
 def readEmotion(emo):
 	out = []
